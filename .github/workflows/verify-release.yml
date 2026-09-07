@@ -6,6 +6,11 @@ name: Verify Published Release APK
 on:
   release:
     types: [published, edited]
+  # Pushing an 'apk-check-<tag>' tag re-runs verification on demand. The prefix
+  # deliberately does not match the 'v*' pattern that drives release.yml.
+  push:
+    tags:
+      - 'apk-check-*'
   workflow_dispatch:
     inputs:
       tag:
@@ -26,6 +31,10 @@ jobs:
         id: tag
         run: |
           TAG="${{ github.event.release.tag_name || inputs.tag }}"
+          if [ -z "$TAG" ]; then
+            # Triggered by an apk-check-<tag> tag push.
+            TAG="${GITHUB_REF_NAME#apk-check-}"
+          fi
           echo "tag=$TAG" >> "$GITHUB_OUTPUT"
           echo "Verifying release $TAG"
 
