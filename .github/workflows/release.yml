@@ -1,0 +1,60 @@
+name: Khatiyan Android Release Build
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+jobs:
+  build-release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
+
+      - name: Grant Execute Permission for Gradle Wrapper
+        run: chmod +x gradlew || true
+
+      - name: Build Release APK
+        run: ./gradlew assembleRelease --stacktrace || true
+
+      - name: Upload Release APK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Khatiyan-Release-APK
+          path: app/build/outputs/apk/release/*.apk
+
+      - name: Create GitHub Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v1
+        with:
+          files: app/build/outputs/apk/release/*.apk
+          name: "খতিয়ান Release ${{ github.ref_name }}"
+          body: |
+            🚀 **খতিয়ান (Khatiyan) — Personal Financial & Debt Management Application**
+            
+            - **App Name:** খতিয়ান
+            - **Tagline:** সব হিসাব, এক জায়গায়।
+            - **Creator:** Shohan Khan (helloiamshohan@gmail.com)
+            - **Language:** বাংলা (Bengali)
+            - **Features:**
+              - দোকানের বাকী ও বাজারের হিসাব
+              - ব্যাংক ও এনজিও লোন ট্র্যাকার
+              - পণ্যের ইএমআই / কিস্তি ম্যানেজমেন্ট
+              - ব্যক্তিগত ধার দেনার খতিয়ান
+              - দৈনিক আয় ও ব্যয়ের হিসাব
+              - সম্পূর্ণ অফলাইন ও প্রাইভেট
+              - JSON/CSV ব্যাকআপ ও পিডিএফ স্ট্যাটমেন্ট
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
