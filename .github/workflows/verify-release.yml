@@ -67,18 +67,35 @@ jobs:
             > "$RUNNER_TEMP/signer.txt" 2>&1 || true
 
           x() { grep -oP "$1" "$RUNNER_TEMP/badging.txt" | head -n1 || true; }
-          PKG=$(x "package: name='\K[^']+")
-          VCODE=$(x "versionCode='\K[^']+")
-          VNAME=$(x "versionName='\K[^']+")
-          LABEL=$(x "application-label:'\K[^']+")
-          MINSDK=$(x "sdkVersion:'\K[^']+")
-          TARGETSDK=$(x "targetSdkVersion:'\K[^']+")
+          PKG=$(x "^package: name='\K[^']+")
+          VCODE=$(x "^package:.*versionCode='\K[^']+")
+          VNAME=$(x "^package:.*versionName='\K[^']+")
+          LABEL=$(x "^application-label:'\K[^']+")
+          MINSDK=$(x "^minSdkVersion:'\K[^']+")
+          TARGETSDK=$(x "^targetSdkVersion:'\K[^']+")
           SIZE=$(stat -c%s "$APK")
           SHA=$(sha256sum "$APK" | cut -d' ' -f1)
-          SIGNER=$(grep -m1 "Signer #1 certificate DN" "$RUNNER_TEMP/signer.txt" || echo "unknown")
+          SIGNER=$(grep -m1 "Signer #1 certificate DN" "$RUNNER_TEMP/signer.txt" | sed 's/|/\\|/g' || true)
+          [ -n "$SIGNER" ] || SIGNER="unknown"
 
-          chk() { if [ "$2" = "$3" ]; then echo "| $1 | \`$2\` | \`$3\` | PASS |"; else echo "| $1 | \`$2\` | \`$3\` | **FAIL** |"; FAILED=1; fi; }
+          # Assertions are evaluated in THIS shell (not inside a pipeline
+          # subshell) so that a mismatch genuinely fails the job.
           FAILED=0
+          : > "$RUNNER_TEMP/rows.md"
+          chk() {
+            if [ "$2" = "$3" ]; then
+              echo "| $1 | \`$2\` | \`$3\` | PASS |" >> "$RUNNER_TEMP/rows.md"
+            else
+              echo "| $1 | \`$2\` | \`$3\` | **FAIL** |" >> "$RUNNER_TEMP/rows.md"
+              FAILED=1
+            fi
+          }
+          chk "Package / application id" "$PKG" "com.shohan.khatiyan"
+          chk "versionName" "$VNAME" "1.0.0"
+          chk "versionCode" "$VCODE" "1"
+          chk "minSdkVersion" "$MINSDK" "26"
+          chk "targetSdkVersion" "$TARGETSDK" "34"
+          echo "assertion failures: $FAILED"
 
           {
             echo "## Published APK verification — \`${{ steps.tag.outputs.tag }}\`"
@@ -87,23 +104,20 @@ jobs:
             echo
             echo "| Field | Actual | Expected | Result |"
             echo "|---|---|---|---|"
-            chk "Package / application id" "$PKG" "com.shohan.khatiyan"
-            chk "versionName" "$VNAME" "1.0.0"
-            chk "versionCode" "$VCODE" "1"
-            chk "minSdkVersion" "$MINSDK" "26"
-            chk "targetSdkVersion" "$TARGETSDK" "34"
+            cat "$RUNNER_TEMP/rows.md"
             echo
             echo "| Field | Value |"
             echo "|---|---|"
             echo "| Application label | \`$LABEL\` |"
             echo "| Size | $SIZE bytes |"
             echo "| SHA-256 | \`$SHA\` |"
-            echo "| $SIGNER |  |"
+            echo "| Signer | $SIGNER |"
             echo
             echo "<details><summary>aapt2 dump badging (head)</summary>"
             echo
             echo '```'
-            head -n 25 "$RUNNER_TEMP/badging.txt"
+            head -n 4 "$RUNNER_TEMP/badging.txt"
+            grep -E "^(application-label:|launchable-activity:|sdkVersion|uses-permission)" "$RUNNER_TEMP/badging.txt" | head -n 15
             echo '```'
             echo "</details>"
             echo
