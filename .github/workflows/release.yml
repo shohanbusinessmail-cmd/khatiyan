@@ -38,7 +38,9 @@ jobs:
         run: chmod +x gradlew
 
       - name: Run Unit Tests
-        run: ./gradlew testReleaseUnitTest --stacktrace
+        run: |
+          set -o pipefail
+          ./gradlew testReleaseUnitTest --stacktrace 2>&1 | tee -a "$RUNNER_TEMP/build.log"
 
       # Production signing is opt-in. When the four secrets below are configured the
       # release APK is signed with the upload keystore; otherwise the build falls back
@@ -65,7 +67,9 @@ jobs:
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
-        run: ./gradlew assembleRelease --stacktrace
+        run: |
+          set -o pipefail
+          ./gradlew assembleRelease --stacktrace 2>&1 | tee -a "$RUNNER_TEMP/build.log"
 
       - name: Verify Release APK Exists
         run: |
@@ -121,3 +125,31 @@ jobs:
             **Signing:** ${{ steps.keystore.outputs.signed == 'true' && 'Signed with the configured production upload keystore.' || '⚠️ This APK is signed with the Android **debug** keystore because the `KEYSTORE_BASE64`, `KEYSTORE_PASSWORD`, `KEY_ALIAS` and `KEY_PASSWORD` repository secrets are not configured. It is installable for testing but must NOT be published to Google Play.' }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # Raw Actions logs live on blob storage that is not always reachable from
+      # every environment; this mirrors the failure reason back through the
+      # GitHub REST API as a commit comment so it is always retrievable.
+      - name: Report Failure Diagnostics
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          LOG="$RUNNER_TEMP/build.log"
+          touch "$LOG"
+          {
+            echo "### Release build failure diagnostics — run ${GITHUB_RUN_ID}"
+            echo
+            echo "Compiler / Gradle errors:"
+            echo '```'
+            grep -E '^(e: |w: )|error:|FAILURE:|\* What went wrong:|Caused by:|^\s+> ' "$LOG" | head -n 80 || echo "(no matching lines)"
+            echo '```'
+            echo
+            echo "<details><summary>Last 250 log lines</summary>"
+            echo
+            echo '```'
+            tail -n 250 "$LOG"
+            echo '```'
+            echo "</details>"
+          } | head -c 60000 > "$RUNNER_TEMP/diag.md"
+          gh api "repos/${GITHUB_REPOSITORY}/commits/${GITHUB_SHA}/comments" \
+            -F body=@"$RUNNER_TEMP/diag.md" > /dev/null || true

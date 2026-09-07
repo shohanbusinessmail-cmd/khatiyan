@@ -7,6 +7,9 @@ on:
     branches: [ "main" ]
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
@@ -40,7 +43,9 @@ jobs:
         run: chmod +x gradlew
 
       - name: Run Unit Tests
-        run: ./gradlew testDebugUnitTest --stacktrace
+        run: |
+          set -o pipefail
+          ./gradlew testDebugUnitTest --stacktrace 2>&1 | tee -a "$RUNNER_TEMP/build.log"
 
       - name: Upload Unit Test Report
         if: always()
@@ -51,7 +56,9 @@ jobs:
           if-no-files-found: warn
 
       - name: Build Debug APK
-        run: ./gradlew assembleDebug --stacktrace
+        run: |
+          set -o pipefail
+          ./gradlew assembleDebug --stacktrace 2>&1 | tee -a "$RUNNER_TEMP/build.log"
 
       - name: Verify Debug APK Exists
         run: |
@@ -65,3 +72,31 @@ jobs:
           name: Khatiyan-Debug-APK
           path: app/build/outputs/apk/debug/*.apk
           if-no-files-found: error
+
+      # Raw Actions logs live on blob storage that is not always reachable from
+      # every environment; this mirrors the failure reason back through the
+      # GitHub REST API as a commit comment so it is always retrievable.
+      - name: Report Failure Diagnostics
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          LOG="$RUNNER_TEMP/build.log"
+          touch "$LOG"
+          {
+            echo "### CI failure diagnostics — run ${GITHUB_RUN_ID}"
+            echo
+            echo "Compiler / Gradle errors:"
+            echo '```'
+            grep -E '^(e: |w: )|error:|FAILURE:|\* What went wrong:|Caused by:|^\s+> ' "$LOG" | head -n 80 || echo "(no matching lines)"
+            echo '```'
+            echo
+            echo "<details><summary>Last 250 log lines</summary>"
+            echo
+            echo '```'
+            tail -n 250 "$LOG"
+            echo '```'
+            echo "</details>"
+          } | head -c 60000 > "$RUNNER_TEMP/diag.md"
+          gh api "repos/${GITHUB_REPOSITORY}/commits/${GITHUB_SHA}/comments" \
+            -F body=@"$RUNNER_TEMP/diag.md" > /dev/null || true
