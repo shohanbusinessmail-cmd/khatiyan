@@ -15,6 +15,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Payments
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -51,6 +52,7 @@ fun ShopDetailScreen(
     shopId: Long,
     viewModel: MainViewModel,
     onBack: () -> Unit,
+    onEditClick: (Long) -> Unit,
     onAddCreditClick: (Long) -> Unit,
     onAddPaymentClick: (Long) -> Unit
 ) {
@@ -75,6 +77,9 @@ fun ShopDetailScreen(
                     }
                 },
                 actions = {
+                    IconButton(onClick = { onEditClick(shopId) }) {
+                        Icon(imageVector = Icons.Default.Edit, contentDescription = "Edit Shop")
+                    }
                     IconButton(onClick = { showDeleteDialog = true }) {
                         Icon(imageVector = Icons.Default.Delete, contentDescription = "Delete Shop")
                     }

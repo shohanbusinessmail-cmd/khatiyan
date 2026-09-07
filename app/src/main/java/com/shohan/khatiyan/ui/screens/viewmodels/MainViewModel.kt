@@ -122,6 +122,20 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    fun updateShop(shop: ShopEntity, onComplete: () -> Unit = {}) {
+        viewModelScope.launch {
+            repository.updateShop(shop)
+            onComplete()
+        }
+    }
+
+    fun deleteShop(shop: ShopEntity, onComplete: () -> Unit = {}) {
+        viewModelScope.launch {
+            repository.deleteShop(shop)
+            onComplete()
+        }
+    }
+
     fun addShopCredit(credit: ShopCreditEntity, items: List<ShopCreditItemEntity>, shopName: String, onComplete: () -> Unit = {}) {
         viewModelScope.launch {
             repository.addShopCredit(credit, items, shopName)

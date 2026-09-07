@@ -8,5 +8,9 @@
 }
 -keep class com.shohan.khatiyan.data.model.** { *; }
 
+# Room entities are serialised by Gson inside the JSON backup payload, so their
+# field names must survive R8 or restore silently produces empty ledgers.
+-keep class com.shohan.khatiyan.data.local.entities.** { *; }
+
 # Keep Compose
 -keepclassmembers class * extends androidx.compose.ui.Modifier
