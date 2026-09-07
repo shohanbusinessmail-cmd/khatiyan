@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Brand Financial Palette -->
+    <color name="primary_emerald">#006C4C</color>
+    <color name="primary_container">#89F8C7</color>
+    <color name="on_primary_container">#002114</color>
+    <color name="secondary_teal">#4C635B</color>
+    <color name="secondary_container">#CEE9DD</color>
+    <color name="accent_gold">#8F4E00</color>
+    <color name="accent_gold_container">#FFDCC2</color>
+
+    <color name="background_light">#F6FBF6</color>
+    <color name="surface_light">#FFFFFF</color>
+    <color name="surface_variant">#DCE5DD</color>
+
+    <color name="text_primary">#191C1A</color>
+    <color name="text_secondary">#404944</color>
+    <color name="text_tertiary">#707974</color>
+
+    <!-- Status Colors -->
+    <color name="status_danger">#BA1A1A</color>
+    <color name="status_danger_container">#FFDAD6</color>
+    <color name="status_success">#006E1C</color>
+    <color name="status_success_container">#B9F8B3</color>
+    <color name="status_warning">#B25900</color>
+    <color name="status_warning_container">#FFDCC4</color>
+</resources>

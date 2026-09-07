@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- App Metadata -->
+    <string name="app_name">খতিয়ান</string>
+    <string name="app_tagline">সব হিসাব, এক জায়গায়</string>
+    <string name="app_creator">Shohan Khan</string>
+    <string name="app_contact">helloiamshohan@gmail.com</string>
+    <string name="app_version">১.০.০</string>
+    <string name="currency_symbol">৳</string>
+    <string name="currency_code">BDT</string>
+
+    <!-- Main Navigation Tabs -->
+    <string name="nav_dashboard">ড্যাশবোর্ড</string>
+    <string name="nav_accounts">হিসাব</string>
+    <string name="nav_transactions">লেনদেন</string>
+    <string name="nav_reports">রিপোর্ট</string>
+    <string name="nav_settings">সেটিংস</string>
+
+    <!-- Categories / Modules -->
+    <string name="module_shop">দোকানের বাকী</string>
+    <string name="module_loan">ব্যাংক/এনজিও লোন</string>
+    <string name="module_emi">ইএমআই/কিস্তি</string>
+    <string name="module_personal">ব্যক্তিগত ধার</string>
+    <string name="module_income">আয়</string>
+    <string name="module_expense">ব্যয়</string>
+
+    <!-- Dashboard Strings -->
+    <string name="dashboard_welcome">স্বাগতম</string>
+    <string name="dashboard_today_summary">আজকের অবস্থা</string>
+    <string name="dashboard_total_debt">মোট দেনা</string>
+    <string name="dashboard_paid_today">আজ পরিশোধ</string>
+    <string name="dashboard_today_income">আজকের আয়</string>
+    <string name="dashboard_today_expense">আজকের ব্যয়</string>
+    <string name="dashboard_net_cashflow">আজকের নিট ক্যাশ ফ্লো</string>
+    <string name="dashboard_outstanding_overview">বকেয়ার সংক্ষিপ্ত বিবরণ</string>
+    <string name="dashboard_upcoming_payments">সামনের পেমেন্ট</string>
+    <string name="dashboard_quick_actions">দ্রুত যুক্ত করুন</string>
+    <string name="dashboard_smart_insights">স্মার্ট ইনসাইট</string>
+
+    <!-- Quick Action Titles -->
+    <string name="action_add_shop">নতুন দোকান</string>
+    <string name="action_add_shop_credit">বাকী যোগ করুন</string>
+    <string name="action_add_loan">নতুন লোন</string>
+    <string name="action_add_emi">নতুন ইএমআই</string>
+    <string name="action_add_personal">নতুন ধার</string>
+    <string name="action_add_income">আয় যোগ করুন</string>
+    <string name="action_add_expense">ব্যয় যোগ করুন</string>
+    <string name="action_add_payment">পেমেন্ট যোগ করুন</string>
+
+    <!-- Common Form Labels & Actions -->
+    <string name="label_name">নাম</string>
+    <string name="label_owner_name">মালিক/ব্যক্তির নাম</string>
+    <string name="label_phone">ফোন নম্বর (ঐচ্ছিক)</string>
+    <string name="label_address">ঠিকানা (ঐচ্ছিক)</string>
+    <string name="label_amount">টাকার পরিমাণ (৳)</string>
+    <string name="label_date">তারিখ</string>
+    <string name="label_due_date">পরিশোধের শেষ তারিখ</string>
+    <string name="label_note">নোট / বিবরণ (ঐচ্ছিক)</string>
+    <string name="label_category">ক্যাটাগরি</string>
+    <string name="label_payment_method">পেমেন্টের মাধ্যম</string>
+    <string name="label_institution">প্রতিষ্ঠানের নাম</string>
+    <string name="label_interest_rate">মুনাফা/সুদের হার (%) (ঐচ্ছিক)</string>
+    <string name="label_installment_amount">কিস্তির পরিমাণ (৳)</string>
+    <string name="label_installment_frequency">কিস্তির সময়কাল</string>
+    <string name="label_total_installments">মোট কিস্তির সংখ্যা</string>
+    <string name="label_down_payment">ডাউন পেমেন্ট (৳)</string>
+    <string name="label_seller">বিক্রেতা/প্রতিষ্ঠানের নাম</string>
+    <string name="label_product_name">পণ্যের নাম</string>
+    <string name="label_relationship">সম্পর্ক / ক্যাটাগরি</string>
+
+    <!-- Frequencies -->
+    <string name="freq_monthly">মাসিক</string>
+    <string name="freq_weekly">সাপ্তাহিক</string>
+    <string name="freq_biweekly">দ্বি-সাপ্তাহিক</string>
+
+    <!-- Payment Methods -->
+    <string name="method_cash">নগদ</string>
+    <string name="method_bkash">বিকাশ</string>
+    <string name="method_nagad">নগদ অ্যাপ</string>
+    <string name="method_rocket">রকেট</string>
+    <string name="method_bank">ব্যাংক ট্র্যান্সফার</string>
+    <string name="method_other">অন্যান্য</string>
+
+    <!-- Personal Relationships -->
+    <string name="rel_friend">বন্ধু</string>
+    <string name="rel_relative">আত্মীয়</string>
+    <string name="rel_family">পরিবার</string>
+    <string name="rel_colleague">সহকর্মী</string>
+    <string name="rel_acquaintance">পরিচিত</string>
+    <string name="rel_other">অন্যান্য</string>
+
+    <!-- Statuses -->
+    <string name="status_paid">সম্পূর্ণ পরিশোধিত</string>
+    <string name="status_partial">আংশিক বকেয়া</string>
+    <string name="status_pending">পরিশোধ বাকি</string>
+    <string name="status_overdue">সময় পেরিয়ে গেছে</string>
+
+    <!-- Common UI Text -->
+    <string name="btn_save">সংরক্ষণ করুন</string>
+    <string name="btn_cancel">বাতিল</string>
+    <string name="btn_delete">মুছে ফেলুন</string>
+    <string name="btn_edit">সম্পাদনা</string>
+    <string name="btn_confirm">নিশ্চিত করুন</string>
+    <string name="btn_back">ফিরে যান</string>
+    <string name="btn_search">খুঁজুন</string>
+    <string name="btn_filter">ফিল্টার</string>
+    <string name="btn_export">এক্সপোর্ট করুন</string>
+    <string name="btn_import">ইম্পোর্ট করুন</string>
+    <string name="btn_backup">ব্যাকআপ নিন</string>
+    <string name="btn_restore">পুনরুদ্ধার করুন</string>
+    <string name="btn_pdf">পিডিএফ রিপোর্ট</string>
+    <string name="btn_quick_add">দ্রুত যুক্ত</string>
+
+    <!-- Empty States -->
+    <string name="empty_shop">এখনও কোনো দোকানের হিসাব যোগ করা হয়নি।</string>
+    <string name="empty_loan">এখনও কোনো লোন যোগ করা হয়নি।</string>
+    <string name="empty_emi">এখনও কোনো ইএমআই বা কিস্তি যোগ করা হয়নি।</string>
+    <string name="empty_personal">এখনও কোনো ব্যক্তিগত ধার যোগ করা হয়নি।</string>
+    <string name="empty_transactions">কোনো লেনদেন পাওয়া যায়নি।</string>
+    <string name="empty_upcoming">সামনে কোনো পরিশোধের শেষ তারিখ নেই।</string>
+
+    <!-- Settings Screen -->
+    <string name="settings_title">সেটিংস</string>
+    <string name="settings_sec_app">অ্যাপ সেটিংস</string>
+    <string name="settings_sec_data">ডেটা ব্যবস্থাপনা</string>
+    <string name="settings_sec_security">সুরক্ষা ও গোপনীয়তা</string>
+    <string name="settings_sec_about">অ্যাপ সম্পর্কে</string>
+    <string name="settings_notifications">নোটিফিকেশন ও রিমাইন্ডার</string>
+    <string name="settings_app_lock">অ্যাপ লক (পিন সুরক্ষা)</string>
+    <string name="settings_light_mode_info">এই অ্যাপটি সর্বদা লাইট মোডে চলে।</string>
+    <string name="settings_privacy_note">আপনার সব হিসাব ও আর্থিক তথ্য সম্পূর্ণভাবে আপনার ফোনেই সুরক্ষিত থাকবে। কোনো তথ্য ইন্টারনেটে পাঠানো হয় না।</string>
+
+    <!-- Backup & Restore -->
+    <string name="backup_restore_title">ব্যাকআপ ও পুনরুদ্ধার</string>
+    <string name="backup_json_desc">JSON ব্যাকআপ ফাইল তৈরি করে নিজের কাছে রেখে দিন।</string>
+    <string name="backup_csv_desc">Excel / CSV ফরম্যাটে সব হিসাব ডাউনলোড করুন।</string>
+    <string name="backup_pdf_desc">আপনার আর্থিক অবস্থার সামগ্রিক PDF রিপোর্ট তৈরি করুন।</string>
+    <string name="backup_success">ব্যাকআপ সফলভাবে সম্পন্ন হয়েছে!</string>
+    <string name="restore_success">ডেটা সফলভাবে পুনরুদ্ধার করা হয়েছে!</string>
+    <string name="restore_confirm_title">পুনরুদ্ধার নিশ্চিতকরণ</string>
+    <string name="restore_confirm_msg">আপনার বর্তমান সমস্ত হিসাবের তথ্য নতুন ব্যাকআপ ফাইল দিয়ে প্রতিস্থাপিত হবে। আপনি কি নিশ্চিত?</string>
+
+    <!-- Validation Messages -->
+    <string name="val_name_required">দয়া করে নাম প্রদান করুন</string>
+    <string name="val_amount_invalid">দয়া করে সঠিক টাকার পরিমাণ লিখুন</string>
+    <string name="val_date_invalid">দয়া করে সঠিক তারিখ বাছাই করুন</string>
+</resources>

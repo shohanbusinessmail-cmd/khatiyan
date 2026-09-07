@@ -1,0 +1,39 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="120dp"
+    android:height="120dp"
+    android:viewportWidth="120"
+    android:viewportHeight="120">
+    <!-- Background Circle -->
+    <path
+        android:fillColor="#006C4C"
+        android:pathData="M60,0A60,60 0,1 1,0 60,60 60,0 0,1 60,0z"/>
+    <!-- Inner Accent Ring -->
+    <path
+        android:strokeColor="#89F8C7"
+        android:strokeWidth="3"
+        android:pathData="M60,10A50,50 0,1 1,10 60,50 50,0 0,1 60,10z"/>
+    <!-- Khatiyan Ledger Book Shape -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M35,32h42c4.4,0 8,3.6 8,8v48c0,4.4 -3.6,8 -8,8H35c-4.4,0 -8,-3.6 -8,-8V40c0,-4.4 3.6,-8 8,-8z"/>
+    <!-- Book Spine Line -->
+    <path
+        android:fillColor="#89F8C7"
+        android:pathData="M35,32h8v64h-8c-4.4,0 -8,-3.6 -8,-8V40c0,-4.4 3.6,-8 8,-8z"/>
+    <!-- Ledger Lines -->
+    <path
+        android:strokeColor="#006C4C"
+        android:strokeWidth="2.5"
+        android:strokeLineCap="round"
+        android:pathData="M48,46h28 M48,56h28 M48,66h20"/>
+    <!-- Success Checkmark Badge -->
+    <path
+        android:fillColor="#8F4E00"
+        android:pathData="M78,72A10,10 0,1 1,58 72,10 10,0 0,1 78,72z"/>
+    <path
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="2"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:pathData="M63,72l3,3l7,-7"/>
+</vector>
