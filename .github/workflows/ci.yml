@@ -102,3 +102,66 @@ jobs:
           } | head -c 60000 > "$RUNNER_TEMP/diag.md"
           gh api "repos/${GITHUB_REPOSITORY}/commits/${GITHUB_SHA}/comments" \
             -F body=@"$RUNNER_TEMP/diag.md" > /dev/null || true
+
+  release-smoke:
+    name: Release APK Smoke Build (R8)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.4'
+
+      - name: Generate Gradle Wrapper
+        run: gradle wrapper --gradle-version 8.4
+
+      - name: Grant Execute Permission for Gradle Wrapper
+        run: chmod +x gradlew
+
+      # Proves the minified/shrunk release variant links before a v* tag is ever
+      # pushed, so tagging cannot produce a broken release run.
+      - name: Build Release APK
+        run: |
+          set -o pipefail
+          ./gradlew assembleRelease --stacktrace 2>&1 | tee -a "$RUNNER_TEMP/build.log"
+
+      - name: Inspect Release APK
+        run: |
+          set -e
+          APK=app/build/outputs/apk/release/app-release.apk
+          test -f "$APK"
+          ls -lh "$APK"
+          BUILD_TOOLS=$(ls -d "$ANDROID_HOME"/build-tools/* | sort -V | tail -n 1)
+          "$BUILD_TOOLS/aapt2" dump badging "$APK" | head -n 10
+
+      - name: Report Failure Diagnostics
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          LOG="$RUNNER_TEMP/build.log"
+          touch "$LOG"
+          grep -v -E '^[[:space:]]+at [a-zA-Z0-9_.$]+\(' "$LOG" > "$RUNNER_TEMP/clean.log" || true
+          {
+            echo "### Release smoke failure diagnostics — run ${GITHUB_RUN_ID}"
+            echo '```'
+            grep -E '^(e|w): |\.kt:[0-9]+|\.kts:[0-9]+|error:|FAILURE:|What went wrong' "$RUNNER_TEMP/clean.log" | head -n 120 || echo "(none)"
+            echo '```'
+            echo "<details><summary>Last 300 log lines</summary>"
+            echo '```'
+            tail -n 300 "$RUNNER_TEMP/clean.log"
+            echo '```'
+            echo "</details>"
+          } | head -c 60000 > "$RUNNER_TEMP/diag.md"
+          gh api "repos/${GITHUB_REPOSITORY}/commits/${GITHUB_SHA}/comments" \
+            -F body=@"$RUNNER_TEMP/diag.md" > /dev/null || true
