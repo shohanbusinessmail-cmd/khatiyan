@@ -48,6 +48,9 @@ interface ShopDao {
     @Query("SELECT * FROM shop_credit_items WHERE creditId = :creditId")
     suspend fun getItemsForCredit(creditId: Long): List<ShopCreditItemEntity>
 
+    @Query("SELECT * FROM shop_credit_items")
+    fun getAllCreditItems(): Flow<List<ShopCreditItemEntity>>
+
     // Shop Payments
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertShopPayment(payment: ShopPaymentEntity): Long

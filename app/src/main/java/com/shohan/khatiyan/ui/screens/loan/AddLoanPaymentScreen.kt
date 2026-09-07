@@ -9,6 +9,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -24,11 +26,13 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.shohan.khatiyan.data.local.entities.LoanPaymentEntity
 import com.shohan.khatiyan.ui.components.DatePickerTextField
 import com.shohan.khatiyan.ui.components.KhatiyanOutlinedTextField
 import com.shohan.khatiyan.ui.screens.viewmodels.MainViewModel
+import com.shohan.khatiyan.util.CurrencyFormatter
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -38,6 +42,11 @@ fun AddLoanPaymentScreen(
     onBack: () -> Unit
 ) {
     val loanState by viewModel.repository.getLoanByIdFlow(loanId).collectAsState(initial = null)
+    val payments by viewModel.repository.getPaymentsForLoanFlow(loanId).collectAsState(initial = emptyList())
+
+    val totalPaid = payments.sumOf { it.amountPaisa }
+    val remainingPaisa = if (loanState != null) (loanState!!.totalPayablePaisa - totalPaid).coerceAtLeast(0L) else 0L
+
     var amountText by remember { mutableStateOf("") }
     var method by remember { mutableStateOf("নগদ") }
     var selectedDate by remember { mutableStateOf(System.currentTimeMillis()) }
@@ -68,6 +77,21 @@ fun AddLoanPaymentScreen(
                 .padding(padding)
                 .padding(20.dp)
         ) {
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
+            ) {
+                Column(modifier = Modifier.padding(14.dp)) {
+                    Text(
+                        text = "অবশিষ্ট লোন বাকি: ${CurrencyFormatter.formatPaisa(remainingPaisa)}",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer
+                    )
+                }
+            }
+            Spacer(modifier = Modifier.height(16.dp))
+
             KhatiyanOutlinedTextField(
                 value = amountText,
                 onValueChange = {
@@ -106,18 +130,22 @@ fun AddLoanPaymentScreen(
                     if (amountDouble == null || amountDouble <= 0) {
                         amountError = "সঠিক কিস্তির পরিমাণ লিখুন"
                     } else {
-                        val paisa = (amountDouble * 100).toLong()
-                        viewModel.addLoanPayment(
-                            payment = LoanPaymentEntity(
-                                loanId = loanId,
-                                date = selectedDate,
-                                amountPaisa = paisa,
-                                paymentMethod = method.ifBlank { "নগদ" },
-                                note = note.trim()
-                            ),
-                            institutionName = loanState?.institutionName ?: "ব্যাংক"
-                        ) {
-                            onBack()
+                        val inputPaisa = (amountDouble * 100).toLong()
+                        if (inputPaisa > remainingPaisa && remainingPaisa > 0) {
+                            amountError = "পরিশোধের পরিমাণ অবশিষ্ট লোনের (${CurrencyFormatter.formatPaisa(remainingPaisa)}) চেয়ে বেশি হতে পারবে না।"
+                        } else {
+                            viewModel.addLoanPayment(
+                                payment = LoanPaymentEntity(
+                                    loanId = loanId,
+                                    date = selectedDate,
+                                    amountPaisa = inputPaisa,
+                                    paymentMethod = method.ifBlank { "নগদ" },
+                                    note = note.trim()
+                                ),
+                                institutionName = loanState?.institutionName ?: "ব্যাংক"
+                            ) {
+                                onBack()
+                            }
                         }
                     }
                 },

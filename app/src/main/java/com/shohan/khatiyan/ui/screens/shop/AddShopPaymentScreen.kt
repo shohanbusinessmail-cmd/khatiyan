@@ -9,6 +9,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -24,11 +26,13 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.shohan.khatiyan.data.local.entities.ShopPaymentEntity
 import com.shohan.khatiyan.ui.components.DatePickerTextField
 import com.shohan.khatiyan.ui.components.KhatiyanOutlinedTextField
 import com.shohan.khatiyan.ui.screens.viewmodels.MainViewModel
+import com.shohan.khatiyan.util.CurrencyFormatter
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -38,6 +42,13 @@ fun AddShopPaymentScreen(
     onBack: () -> Unit
 ) {
     val shopState by viewModel.repository.getShopByIdFlow(shopId).collectAsState(initial = null)
+    val credits by viewModel.repository.getCreditsForShopFlow(shopId).collectAsState(initial = emptyList())
+    val payments by viewModel.repository.getPaymentsForShopFlow(shopId).collectAsState(initial = emptyList())
+
+    val totalCredit = credits.sumOf { it.totalAmountPaisa }
+    val totalPaid = payments.sumOf { it.amountPaisa }
+    val remainingBalancePaisa = (totalCredit - totalPaid).coerceAtLeast(0L)
+
     var amountText by remember { mutableStateOf("") }
     var method by remember { mutableStateOf("নগদ") }
     var selectedDate by remember { mutableStateOf(System.currentTimeMillis()) }
@@ -68,6 +79,21 @@ fun AddShopPaymentScreen(
                 .padding(padding)
                 .padding(20.dp)
         ) {
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
+            ) {
+                Column(modifier = Modifier.padding(14.dp)) {
+                    Text(
+                        text = "বর্তমান বকেয়া বাকি: ${CurrencyFormatter.formatPaisa(remainingBalancePaisa)}",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer
+                    )
+                }
+            }
+            Spacer(modifier = Modifier.height(16.dp))
+
             KhatiyanOutlinedTextField(
                 value = amountText,
                 onValueChange = {
@@ -104,20 +130,24 @@ fun AddShopPaymentScreen(
                 onClick = {
                     val amountDouble = amountText.toDoubleOrNull()
                     if (amountDouble == null || amountDouble <= 0) {
-                        amountError = "দয়া করে সঠিক টাকা লিখুন"
+                        amountError = "দয়া করে সঠিক টাকার পরিমাণ লিখুন"
                     } else {
-                        val paisa = (amountDouble * 100).toLong()
-                        viewModel.addShopPayment(
-                            payment = ShopPaymentEntity(
-                                shopId = shopId,
-                                date = selectedDate,
-                                amountPaisa = paisa,
-                                paymentMethod = method.ifBlank { "নগদ" },
-                                note = note.trim()
-                            ),
-                            shopName = shopState?.name ?: "দোকান"
-                        ) {
-                            onBack()
+                        val inputPaisa = (amountDouble * 100).toLong()
+                        if (inputPaisa > remainingBalancePaisa && remainingBalancePaisa > 0) {
+                            amountError = "পরিশোধের পরিমাণ বকেয়ার (${CurrencyFormatter.formatPaisa(remainingBalancePaisa)}) চেয়ে বেশি হতে পারবে না।"
+                        } else {
+                            viewModel.addShopPayment(
+                                payment = ShopPaymentEntity(
+                                    shopId = shopId,
+                                    date = selectedDate,
+                                    amountPaisa = inputPaisa,
+                                    paymentMethod = method.ifBlank { "নগদ" },
+                                    note = note.trim()
+                                ),
+                                shopName = shopState?.name ?: "দোকান"
+                            ) {
+                                onBack()
+                            }
                         }
                     }
                 },
