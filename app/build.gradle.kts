@@ -21,6 +21,20 @@ android {
         }
     }
 
+    // Optional production signing. Every value is read from the environment
+    // (populated from GitHub Secrets in CI) — nothing is ever committed.
+    val releaseKeystorePath: String? = System.getenv("KEYSTORE_FILE")
+    signingConfigs {
+        if (!releaseKeystorePath.isNullOrBlank() && file(releaseKeystorePath).exists()) {
+            create("release") {
+                storeFile = file(releaseKeystorePath)
+                storePassword = System.getenv("KEYSTORE_PASSWORD")
+                keyAlias = System.getenv("KEY_ALIAS")
+                keyPassword = System.getenv("KEY_PASSWORD")
+            }
+        }
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = true
@@ -29,7 +43,11 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
-            signingConfig = signingConfigs.getByName("debug")
+            // Uses the production upload keystore when CI secrets are configured,
+            // otherwise falls back to the debug keystore so the build never fails
+            // and no key material has to live in the repository.
+            signingConfig = signingConfigs.findByName("release")
+                ?: signingConfigs.getByName("debug")
         }
         debug {
             applicationIdSuffix = ".debug"

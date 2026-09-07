@@ -192,6 +192,8 @@ class KhatiyanRepositoryImpl(private val db: KhatiyanDatabase) : KhatiyanReposit
 
     override suspend fun addShop(shop: ShopEntity): Long = shopDao.insertShop(shop)
 
+    override suspend fun updateShop(shop: ShopEntity) = shopDao.updateShop(shop)
+
     override suspend fun addShopCredit(
         credit: ShopCreditEntity,
         items: List<ShopCreditItemEntity>,

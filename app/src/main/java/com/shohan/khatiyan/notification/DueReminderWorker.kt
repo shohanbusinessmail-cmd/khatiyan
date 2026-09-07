@@ -13,7 +13,7 @@ class DueReminderWorker(
     params: WorkerParameters
 ) : CoroutineWorker(context, params) {
 
-    override suspend doWork(): Result {
+    override suspend fun doWork(): Result {
         val db = KhatiyanDatabase.getDatabase(context)
         val today = System.currentTimeMillis()
 

@@ -1,13 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <style name="Theme.Khatiyan" parent="Theme.Material3.Light.NoActionBar">
-        <item name="colorPrimary">@color/primary_emerald</item>
-        <item name="colorOnPrimary">#FFFFFF</item>
-        <item name="colorPrimaryContainer">@color/primary_container</item>
-        <item name="colorOnPrimaryContainer">@color/on_primary_container</item>
-        <item name="colorSecondary">@color/secondary_teal</item>
-        <item name="colorBackground">@color/background_light</item>
-        <item name="colorSurface">@color/surface_light</item>
+    <!--
+        The UI is 100% Jetpack Compose, so the XML theme only drives the window /
+        splash appearance before the Compose tree is attached. It therefore uses a
+        platform parent instead of Theme.Material3.*, which lives in the
+        com.google.android.material library that this Compose-only app does not
+        depend on (referencing it made resource linking fail).
+        The real Material 3 colour scheme is defined in ui/theme/Theme.kt.
+    -->
+    <style name="Theme.Khatiyan" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:colorPrimary">@color/primary_emerald</item>
+        <item name="android:colorPrimaryDark">@color/primary_emerald</item>
+        <item name="android:colorAccent">@color/secondary_teal</item>
+        <item name="android:colorBackground">@color/background_light</item>
+        <item name="android:windowBackground">@color/background_light</item>
         <item name="android:statusBarColor">@color/primary_emerald</item>
         <item name="android:windowLightStatusBar">false</item>
     </style>

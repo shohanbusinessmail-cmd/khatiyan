@@ -54,7 +54,7 @@ fun SummaryStatCard(
                 style = MaterialTheme.typography.headlineMedium,
                 color = contentColor
             )
-            if (!subtitle.isNull_blank()) {
+            if (!subtitle.isNullOrBlank()) {
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
                     text = subtitle,
@@ -65,5 +65,3 @@ fun SummaryStatCard(
         }
     }
 }
-
-private fun String?.isNull_blank(): Boolean = this == null || this.isBlank()

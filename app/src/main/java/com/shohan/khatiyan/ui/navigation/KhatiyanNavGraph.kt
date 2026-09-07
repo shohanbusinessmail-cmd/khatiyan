@@ -47,6 +47,7 @@ import com.shohan.khatiyan.ui.screens.settings.SettingsScreen
 import com.shohan.khatiyan.ui.screens.shop.AddShopCreditScreen
 import com.shohan.khatiyan.ui.screens.shop.AddShopPaymentScreen
 import com.shohan.khatiyan.ui.screens.shop.AddShopScreen
+import com.shohan.khatiyan.ui.screens.shop.EditShopScreen
 import com.shohan.khatiyan.ui.screens.shop.ShopDetailScreen
 import com.shohan.khatiyan.ui.screens.transaction.TransactionListScreen
 import com.shohan.khatiyan.ui.screens.viewmodels.MainViewModel
@@ -180,9 +181,17 @@ fun KhatiyanAppUi(
                     shopId = shopId,
                     viewModel = viewModel,
                     onBack = { navController.popBackStack() },
+                    onEditClick = { id -> navController.navigate(Screen.EditShop.createRoute(id)) },
                     onAddCreditClick = { id -> navController.navigate(Screen.AddShopCredit.createRoute(id)) },
                     onAddPaymentClick = { id -> navController.navigate(Screen.AddShopPayment.createRoute(id)) }
                 )
+            }
+            composable(
+                route = Screen.EditShop.route,
+                arguments = listOf(navArgument("shopId") { type = NavType.LongType })
+            ) { backStackEntry ->
+                val shopId = backStackEntry.arguments?.getLong("shopId") ?: 0L
+                EditShopScreen(shopId = shopId, viewModel = viewModel, onBack = { navController.popBackStack() })
             }
             composable(
                 route = Screen.AddShopCredit.route,

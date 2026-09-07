@@ -35,6 +35,7 @@ interface KhatiyanRepository {
     fun getCreditsForShopFlow(shopId: Long): Flow<List<ShopCreditEntity>>
     fun getPaymentsForShopFlow(shopId: Long): Flow<List<ShopPaymentEntity>>
     suspend fun addShop(shop: ShopEntity): Long
+    suspend fun updateShop(shop: ShopEntity)
     suspend fun addShopCredit(credit: ShopCreditEntity, items: List<ShopCreditItemEntity>, shopName: String): Long
     suspend fun addShopPayment(payment: ShopPaymentEntity, shopName: String): Long
     suspend fun deleteShop(shop: ShopEntity)
