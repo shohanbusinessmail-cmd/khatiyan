@@ -1,0 +1,110 @@
+name: Verify Published Release APK
+
+# Inspects the APK that is actually attached to a GitHub Release — not a
+# freshly built local copy — and reports package id, version, SDK levels and
+# signer back through the REST API as a commit comment on the tagged commit.
+on:
+  release:
+    types: [published, edited]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Release tag to verify (e.g. v1.0.0)'
+        required: true
+        default: 'v1.0.0'
+
+permissions:
+  contents: write
+
+jobs:
+  verify:
+    name: Inspect Released APK
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Resolve Tag
+        id: tag
+        run: |
+          TAG="${{ github.event.release.tag_name || inputs.tag }}"
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "Verifying release $TAG"
+
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.tag.outputs.tag }}
+
+      - name: Download Released APK
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -e
+          gh release download "${{ steps.tag.outputs.tag }}" \
+            --repo "$GITHUB_REPOSITORY" \
+            --pattern 'app-release.apk' \
+            --dir "$RUNNER_TEMP"
+          ls -lh "$RUNNER_TEMP/app-release.apk"
+
+      - name: Inspect APK and Report
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -e
+          APK="$RUNNER_TEMP/app-release.apk"
+          BUILD_TOOLS=$(ls -d "$ANDROID_HOME"/build-tools/* | sort -V | tail -n 1)
+
+          "$BUILD_TOOLS/aapt2" dump badging "$APK" > "$RUNNER_TEMP/badging.txt"
+          "$BUILD_TOOLS/apksigner" verify --print-certs --verbose "$APK" \
+            > "$RUNNER_TEMP/signer.txt" 2>&1 || true
+
+          PKG=$(grep -oP "package: name='\K[^']+" "$RUNNER_TEMP/badging.txt")
+          VCODE=$(grep -oP "versionCode='\K[^']+" "$RUNNER_TEMP/badging.txt")
+          VNAME=$(grep -oP "versionName='\K[^']+" "$RUNNER_TEMP/badging.txt")
+          LABEL=$(grep -oP "application-label:'\K[^']+" "$RUNNER_TEMP/badging.txt" || echo "n/a")
+          MINSDK=$(grep -oP "sdkVersion:'\K[^']+" "$RUNNER_TEMP/badging.txt")
+          TARGETSDK=$(grep -oP "targetSdkVersion:'\K[^']+" "$RUNNER_TEMP/badging.txt")
+          SIZE=$(stat -c%s "$APK")
+          SHA=$(sha256sum "$APK" | cut -d' ' -f1)
+
+          {
+            echo "## Published APK verification — \`${{ steps.tag.outputs.tag }}\`"
+            echo
+            echo "Downloaded \`app-release.apk\` from the GitHub Release and inspected it with the Android build tools."
+            echo
+            echo "| Field | Value |"
+            echo "|---|---|"
+            echo "| Application label | \`$LABEL\` |"
+            echo "| Package / application id | \`$PKG\` |"
+            echo "| versionName | \`$VNAME\` |"
+            echo "| versionCode | \`$VCODE\` |"
+            echo "| minSdkVersion | \`$MINSDK\` |"
+            echo "| targetSdkVersion | \`$TARGETSDK\` |"
+            echo "| Size | $SIZE bytes |"
+            echo "| SHA-256 | \`$SHA\` |"
+            echo
+            echo "<details><summary>aapt2 dump badging (head)</summary>"
+            echo
+            echo '```'
+            head -n 25 "$RUNNER_TEMP/badging.txt"
+            echo '```'
+            echo "</details>"
+            echo
+            echo "<details><summary>apksigner verify --print-certs</summary>"
+            echo
+            echo '```'
+            head -n 40 "$RUNNER_TEMP/signer.txt"
+            echo '```'
+            echo "</details>"
+          } | head -c 60000 > "$RUNNER_TEMP/report.md"
+
+          cat "$RUNNER_TEMP/report.md" >> "$GITHUB_STEP_SUMMARY"
+          gh api "repos/${GITHUB_REPOSITORY}/commits/${{ steps.tag.outputs.tag }}/comments" \
+            -F body=@"$RUNNER_TEMP/report.md" > /dev/null
+
+          # Hard assertions — the job fails if the shipped APK is not what we claim.
+          test "$PKG" = "com.shohan.khatiyan"
+          test "$VNAME" = "1.0.0"
+          test "$VCODE" = "1"
+          test "$MINSDK" = "26"
+          test "$TARGETSDK" = "34"
+          echo "All release identity assertions passed."
