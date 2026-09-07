@@ -17,7 +17,7 @@ class InsightEngineTest {
         )
         val insights = InsightEngine.generateInsights(summary, emptyList())
         assertFalse(insights.isEmpty())
-        assertTrue(insights.any { it.title.contains("মোট দেনা") })
+        assertTrue(insights.any { it.title.contains("মোট দায়") })
     }
 
     @Test
