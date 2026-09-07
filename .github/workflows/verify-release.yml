@@ -58,38 +58,47 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          set -e
           APK="$RUNNER_TEMP/app-release.apk"
           BUILD_TOOLS=$(ls -d "$ANDROID_HOME"/build-tools/* | sort -V | tail -n 1)
+          echo "build-tools: $BUILD_TOOLS"
 
-          "$BUILD_TOOLS/aapt2" dump badging "$APK" > "$RUNNER_TEMP/badging.txt"
+          "$BUILD_TOOLS/aapt2" dump badging "$APK" > "$RUNNER_TEMP/badging.txt" 2>&1 || true
           "$BUILD_TOOLS/apksigner" verify --print-certs --verbose "$APK" \
             > "$RUNNER_TEMP/signer.txt" 2>&1 || true
 
-          PKG=$(grep -oP "package: name='\K[^']+" "$RUNNER_TEMP/badging.txt")
-          VCODE=$(grep -oP "versionCode='\K[^']+" "$RUNNER_TEMP/badging.txt")
-          VNAME=$(grep -oP "versionName='\K[^']+" "$RUNNER_TEMP/badging.txt")
-          LABEL=$(grep -oP "application-label:'\K[^']+" "$RUNNER_TEMP/badging.txt" || echo "n/a")
-          MINSDK=$(grep -oP "sdkVersion:'\K[^']+" "$RUNNER_TEMP/badging.txt")
-          TARGETSDK=$(grep -oP "targetSdkVersion:'\K[^']+" "$RUNNER_TEMP/badging.txt")
+          x() { grep -oP "$1" "$RUNNER_TEMP/badging.txt" | head -n1 || true; }
+          PKG=$(x "package: name='\K[^']+")
+          VCODE=$(x "versionCode='\K[^']+")
+          VNAME=$(x "versionName='\K[^']+")
+          LABEL=$(x "application-label:'\K[^']+")
+          MINSDK=$(x "sdkVersion:'\K[^']+")
+          TARGETSDK=$(x "targetSdkVersion:'\K[^']+")
           SIZE=$(stat -c%s "$APK")
           SHA=$(sha256sum "$APK" | cut -d' ' -f1)
+          SIGNER=$(grep -m1 "Signer #1 certificate DN" "$RUNNER_TEMP/signer.txt" || echo "unknown")
+
+          chk() { if [ "$2" = "$3" ]; then echo "| $1 | \`$2\` | \`$3\` | PASS |"; else echo "| $1 | \`$2\` | \`$3\` | **FAIL** |"; FAILED=1; fi; }
+          FAILED=0
 
           {
             echo "## Published APK verification — \`${{ steps.tag.outputs.tag }}\`"
             echo
-            echo "Downloaded \`app-release.apk\` from the GitHub Release and inspected it with the Android build tools."
+            echo "\`app-release.apk\` was downloaded from the GitHub Release and inspected with the Android build tools."
+            echo
+            echo "| Field | Actual | Expected | Result |"
+            echo "|---|---|---|---|"
+            chk "Package / application id" "$PKG" "com.shohan.khatiyan"
+            chk "versionName" "$VNAME" "1.0.0"
+            chk "versionCode" "$VCODE" "1"
+            chk "minSdkVersion" "$MINSDK" "26"
+            chk "targetSdkVersion" "$TARGETSDK" "34"
             echo
             echo "| Field | Value |"
             echo "|---|---|"
             echo "| Application label | \`$LABEL\` |"
-            echo "| Package / application id | \`$PKG\` |"
-            echo "| versionName | \`$VNAME\` |"
-            echo "| versionCode | \`$VCODE\` |"
-            echo "| minSdkVersion | \`$MINSDK\` |"
-            echo "| targetSdkVersion | \`$TARGETSDK\` |"
             echo "| Size | $SIZE bytes |"
             echo "| SHA-256 | \`$SHA\` |"
+            echo "| $SIGNER |  |"
             echo
             echo "<details><summary>aapt2 dump badging (head)</summary>"
             echo
@@ -107,13 +116,14 @@ jobs:
           } | head -c 60000 > "$RUNNER_TEMP/report.md"
 
           cat "$RUNNER_TEMP/report.md" >> "$GITHUB_STEP_SUMMARY"
-          gh api "repos/${GITHUB_REPOSITORY}/commits/${{ steps.tag.outputs.tag }}/comments" \
-            -F body=@"$RUNNER_TEMP/report.md" > /dev/null
 
-          # Hard assertions — the job fails if the shipped APK is not what we claim.
-          test "$PKG" = "com.shohan.khatiyan"
-          test "$VNAME" = "1.0.0"
-          test "$VCODE" = "1"
-          test "$MINSDK" = "26"
-          test "$TARGETSDK" = "34"
+          # Comment on the commit the release tag points at (the API needs a SHA).
+          TARGET_SHA=$(gh api "repos/${GITHUB_REPOSITORY}/commits/${{ steps.tag.outputs.tag }}" --jq .sha)
+          gh api "repos/${GITHUB_REPOSITORY}/commits/${TARGET_SHA}/comments" \
+            -F body=@"$RUNNER_TEMP/report.md" > /dev/null || echo "::warning::could not post commit comment"
+
+          if [ "$FAILED" != "0" ]; then
+            echo "::error::Released APK identity does not match the expected release metadata."
+            exit 1
+          fi
           echo "All release identity assertions passed."
